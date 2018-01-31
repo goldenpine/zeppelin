@@ -106,7 +106,7 @@ if [[ ! -z "$ZEPPELIN_IMPERSONATE_USER" ]]; then
 fi
 ZEPPELIN_LOGFILE+="${ZEPPELIN_IDENT_STRING}-${HOSTNAME}.log"
 
-if [[ -z "${ZEPPELIN_SPARK_K8_CLUSTER}" ]]; then
+if [[ -z "${ZEPPELIN_SPARK_K8S_CLUSTER}" ]]; then
     JAVA_INTP_OPTS+=" -Dzeppelin.log.file=${ZEPPELIN_LOGFILE}"
 fi
 

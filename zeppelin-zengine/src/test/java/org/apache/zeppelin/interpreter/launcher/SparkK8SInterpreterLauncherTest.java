@@ -48,6 +48,7 @@ public class SparkK8SInterpreterLauncherTest {
     assertEquals(".//local-repo/settingsGroupId", interpreterProcess.getLocalRepoDir());
     assertEquals(zConf.getInterpreterRemoteRunnerPath(), interpreterProcess.getInterpreterRunner());
     assertEquals(3, interpreterProcess.getEnv().size());
-    assertEquals(Boolean.TRUE.toString(), interpreterProcess.getEnv().get("ZEPPELIN_SPARK_K8_CLUSTER"));
+    assertEquals(Boolean.TRUE.toString(), interpreterProcess.getEnv().get
+      ("ZEPPELIN_SPARK_K8S_CLUSTER"));
   }
 }

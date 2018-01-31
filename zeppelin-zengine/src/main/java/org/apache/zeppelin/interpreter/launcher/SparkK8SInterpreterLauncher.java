@@ -83,7 +83,7 @@ public class SparkK8SInterpreterLauncher extends SparkInterpreterLauncher {
       String sparkConf = buildSparkConf(localRepoPath, env);
       LOGGER.debug(sparkConf);
       env.put("ZEPPELIN_SPARK_CONF", sparkConf);
-      env.put("ZEPPELIN_SPARK_K8_CLUSTER", "true");
+      env.put("ZEPPELIN_SPARK_K8S_CLUSTER", "true");
 
       return new SparkK8SRemoteInterpreterManagedProcess(
               runner != null ? runner.getPath() : zConf.getInterpreterRemoteRunnerPath(),
@@ -133,7 +133,7 @@ public class SparkK8SInterpreterLauncher extends SparkInterpreterLauncher {
     if (sparkJarsBuilder.length() > 0) {
       sparkConfBuilder.append(" --jars ").append(sparkJarsBuilder.toString());
     }
-    sparkConfBuilder.append(" --files " + zConf.getConfDir() + "/log4j_k8_cluster" +
+    sparkConfBuilder.append(" --files " + zConf.getConfDir() + "/log4j_k8s_cluster" +
       ".properties");
     return sparkConfBuilder.toString();
   }
