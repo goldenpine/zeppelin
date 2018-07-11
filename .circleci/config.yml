@@ -1,0 +1,57 @@
+version: 3
+general:
+  branches:
+    only:
+      - master-spark-k8s
+    ignore:
+      - master
+jobs:
+  build:
+    working_directory: ~/zeppelin
+    docker:
+      - image: circleci/openjdk:8-jdk
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+          - zeppelin-k8s-master-{{ checksum "pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          # cp .circleci/interpreter.json.template conf/interpreter.json
+          - zeppelin-k8s-master-
+
+      - run:
+          name: Build
+          command: |
+            ./dev/change_scala_version.sh 2.11
+            mvn clean install -DskipTests -Pspark-2.2 -Pscala-2.11 -Drat.skip=true
+
+      - run:
+          name: Create distribution
+          command: |
+            cd zeppelin-distribution
+            mvn org.apache.maven.plugins:maven-assembly-plugin:3.0.0:single -P apache-release
+            cd ..
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: zeppelin-k8s-master-{{ checksum "pom.xml" }}
+
+      - setup_remote_docker:
+          reusable: true
+          exclusive: true
+      - run:
+          name: Build containers
+          command: |
+            export ZEPPELIN_VERSION="0.9.0-k8s-1.0.${CIRCLE_BUILD_NUM}"
+            cp .circleci/Dockerfile zeppelin-distribution/target
+            cd zeppelin-distribution/target
+            docker build -t "${DOCKER_HUB_PATH}/zeppelin-server:v${ZEPPELIN_VERSION}" -f Dockerfile .
+            docker images
+      - deploy:
+          name: Push docker images
+          command: |
+            export ZEPPELIN_VERSION="0.9.0-k8s-1.0.${CIRCLE_BUILD_NUM}"
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push "${DOCKER_HUB_PATH}/zeppelin-server:v${ZEPPELIN_VERSION}"
