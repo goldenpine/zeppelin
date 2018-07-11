@@ -63,7 +63,10 @@ public class SparkInterpreterLauncher extends StandardInterpreterLauncher {
     setupPropertiesForSparkR(sparkProperties);
     if (isYarnMode() && getDeployMode().equals("cluster")) {
       env.put("ZEPPELIN_SPARK_YARN_CLUSTER", "true");
+      env.put("ZEPPELIN_INTP_JAVA_OPTS", "-Dlog4j.configuration=log4j_yarn_cluster.properties");
       sparkProperties.setProperty("spark.yarn.submit.waitAppCompletion", "false");
+    } else {
+      env.put("ZEPPELIN_INTP_JAVA_OPTS", "-Dlog4j.configuration=file://${ZEPPELIN_CONF_DIR}/log4j.properties");
     }
 
     StringBuilder sparkConfBuilder = new StringBuilder();
