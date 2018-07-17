@@ -168,10 +168,10 @@ public class RemoteInterpreterServer extends Thread
       serverTransport = new TServerSocket(intpEventServerPort);
     } else {
       serverTransport = RemoteInterpreterUtils.createTServerSocket(portRange);
-      this.port = serverTransport.getServerSocket().getLocalPort();
-      this.host = RemoteInterpreterUtils.findAvailableHostAddress();
-      logger.info("Launching ThriftServer at " + this.host + ":" + this.port);
     }
+    this.port = serverTransport.getServerSocket().getLocalPort();
+    this.host = RemoteInterpreterUtils.findAvailableHostAddress();
+    logger.info("Launching ThriftServer at " + this.host + ":" + this.port);
     server = new TThreadPoolServer(
         new TThreadPoolServer.Args(serverTransport).processor(processor));
     logger.info("Starting remote interpreter server on port {}", port);
@@ -276,6 +276,7 @@ public class RemoteInterpreterServer extends Thread
         portRange = args[3];
       }
     }
+
     RemoteInterpreterServer remoteInterpreterServer =
         new RemoteInterpreterServer(zeppelinServerHost, port, interpreterGroupId, portRange);
     remoteInterpreterServer.start();

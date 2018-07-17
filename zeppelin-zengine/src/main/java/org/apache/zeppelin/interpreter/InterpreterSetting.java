@@ -662,7 +662,15 @@ public class InterpreterSetting {
 
   public String getLauncherPlugin() {
     if (group.equals("spark")) {
-      return "SparkInterpreterLauncher";
+      Properties props = getJavaProperties();
+      String deployMode = props.getProperty("spark.submit.deployMode");
+      String masterUrl = props.getProperty("master");
+      if (deployMode != null && deployMode.equals("cluster") &&
+        masterUrl != null && masterUrl.startsWith("k8s://")) {
+        return "SparkK8sInterpreterLauncher";
+      } else {
+        return "SparkInterpreterLauncher";
+      }
     } else {
       return "StandardInterpreterLauncher";
     }

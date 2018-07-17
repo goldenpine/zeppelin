@@ -501,6 +501,10 @@ public class ZeppelinConfiguration extends XMLConfiguration {
     }
   }
 
+  public String getZeppelinServerHostname() {
+    return getString(ConfVars.ZEPPELIN_SERVER_HOSTNAME);
+  }
+
   public String getZeppelinServerRPCPortRange() {
     return getString(ConfVars.ZEPPELIN_SERVER_RPC_PORTRANGE);
   }
@@ -800,7 +804,7 @@ public class ZeppelinConfiguration extends XMLConfiguration {
 
     ZEPPELIN_SERVER_KERBEROS_KEYTAB("zeppelin.server.kerberos.keytab", ""),
     ZEPPELIN_SERVER_KERBEROS_PRINCIPAL("zeppelin.server.kerberos.principal", ""),
-
+    ZEPPELIN_SERVER_HOSTNAME("zeppelin.server.rpc.hostName", ""),
     ZEPPELIN_SERVER_RPC_PORTRANGE("zeppelin.server.rpc.portRange", ":"),
     ZEPPELIN_INTERPRETER_RPC_PORTRANGE("zeppelin.interpreter.rpc.portRange", ":"),
 

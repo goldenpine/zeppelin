@@ -49,6 +49,7 @@
 
         <module>launcher/standard</module>
         <module>launcher/spark</module>
+        <module>launcher/spark-on-k8s</module>
     </modules>
 
     <dependencies>
