@@ -2,7 +2,7 @@ version: 3
 general:
   branches:
     only:
-      - master-spark-k8s
+      - master-spark-k8s-test
     ignore:
       - master
 jobs:
@@ -16,10 +16,10 @@ jobs:
 
       - restore_cache:
           keys:
-          - zeppelin-k8s-master-{{ checksum "pom.xml" }}
+          - zeppelin-k8s-master-test-{{ checksum "pom.xml" }}
           # fallback to using the latest cache if no exact match is found
           # cp .circleci/interpreter.json.template conf/interpreter.json
-          - zeppelin-k8s-master-
+          - zeppelin-k8s-master-test-
 
       - run:
           name: Build
@@ -36,7 +36,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: zeppelin-k8s-master-{{ checksum "pom.xml" }}
+          key: zeppelin-k8s-master-test-{{ checksum "pom.xml" }}
 
       - setup_remote_docker:
           reusable: true
