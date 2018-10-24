@@ -80,11 +80,15 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
       properties.put(SPARK_METRICS_NAMESPACE, driverPodNamePrefix);
 
       Map<String, String> env = super.buildEnvFromProperties(context);
-      String sparkConf = buildSparkConf(localRepoPath, env);
-      LOGGER.debug(sparkConf);
-      env.put("ZEPPELIN_SPARK_CONF", sparkConf);
+//      String sparkConf = buildSparkConf(localRepoPath, env);
+//      LOGGER.debug(sparkConf);
+//      env.put("ZEPPELIN_SPARK_CONF", sparkConf);
       env.put("ZEPPELIN_SPARK_K8_CLUSTER", "true");
-      env.put("ZEPPELIN_INTP_JAVA_OPTS", "-Dlog4j.configuration=log4j_k8_cluster.properties");
+      env.put("ZEPPELIN_INTP_JAVA_OPTS", "-Dlog4j" +
+        ".configuration=/opt/zeppelin/conf/log4j_k8_cluster.properties");
+      env.put("ZEPPELIN_SPARK_CONF", "--conf spark.executor.extraJavaOptions=\"-Dlog4j" +
+        ".configuration=/opt/zeppelin/conf/log4j_k8_cluster.properties\"");
+
 
       return new SparkK8sRemoteInterpreterManagedProcess(
               zConf.getZeppelinServerHostname(),
