@@ -45,7 +45,7 @@ jobs:
           name: Build containers
           command: |
             export ZEPPELIN_VERSION="0.9.0-k8s-1.0.${CIRCLE_BUILD_NUM}"
-            cp .circleci/Dockerfile zeppelin-distribution/target
+            cp .circleci/Dockerfile* zeppelin-distribution/target
             cd zeppelin-distribution/target
             docker build -t "${DOCKER_HUB_PATH}/zeppelin-server:v${ZEPPELIN_VERSION}" -f Dockerfile .
             docker build -t "${DOCKER_HUB_PATH}/zeppelin-spark:v${ZEPPELIN_VERSION}" -f Dockerfile-spark .
