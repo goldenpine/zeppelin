@@ -133,11 +133,11 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
     }
 
     StringBuilder sparkConfBuilder = new StringBuilder(env.get("ZEPPELIN_SPARK_CONF"));
-    if (sparkJarsBuilder.length() > 0) {
-      sparkConfBuilder.append(" --jars ").append(sparkJarsBuilder.toString());
-    }
-    sparkConfBuilder.append(" --files " + zConf.getConfDir() + "/log4j_k8_cluster" +
-      ".properties");
+//    if (sparkJarsBuilder.length() > 0) {
+//      sparkConfBuilder.append(" --jars ").append(sparkJarsBuilder.toString());
+//    }
+//    sparkConfBuilder.append(" --files " + zConf.getConfDir() + "/log4j_k8_cluster" +
+//      ".properties");
     return sparkConfBuilder.toString();
   }
 
