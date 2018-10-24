@@ -88,7 +88,7 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
         ".configuration=/opt/zeppelin/conf/log4j_k8_cluster.properties");
 
       StringBuilder sparkConfBuilder = new StringBuilder(env.get("ZEPPELIN_SPARK_CONF"));
-      sparkConfBuilder.append("--conf spark.executor" +
+      sparkConfBuilder.append(" --conf spark.executor" +
         ".extraJavaOptions=\"-Dlog4j" +
         ".configuration=/opt/zeppelin/conf/log4j_k8_cluster.properties\"");
       env.put("ZEPPELIN_SPARK_CONF", sparkConfBuilder.toString());
