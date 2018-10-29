@@ -245,7 +245,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
     }
   }
 
-  private void deleteDriverJob() {
+  private void deleteDriver() {
     List<Job> list = getKubernetesClient().extensions().jobs().inNamespace
       (KUBERNETES_NAMESPACE)
       .withLabel(INTERPRETER_PROCESS_ID, processLabelId).list().getItems();
@@ -260,15 +260,27 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
         getKubernetesClient().extensions().jobs().delete(driverJob);
       }
     } else {
-      logger.debug("Pod not found!");
+      logger.debug("Job not found will try to delete pod directly!");
+      List<Pod> podList = getKubernetesClient().pods().inNamespace(KUBERNETES_NAMESPACE)
+        .withLabel(INTERPRETER_PROCESS_ID, processLabelId).list().getItems();
+      if (podList.size() >= 1) {
+        Pod driverPod = podList.iterator().next();
+        String podName = driverPod.getMetadata().getName();
+        logger.debug("Delete Driver pod {} if Running, with status: ", podName,
+          driverPod.getStatus().getPhase());
+        getKubernetesClient().pods().delete(driverPod);
+      } else {
+        logger.debug("Pod not found!");
+      }
     }
+
   }
 
   protected void stopEndPoint() {
     if (driverService != null) {
       try {
         deleteEndpointService();
-        deleteDriverJob();
+        deleteDriver();
         getKubernetesClient().close();
         kubernetesClient = null;
       } catch (KubernetesClientException e) {
