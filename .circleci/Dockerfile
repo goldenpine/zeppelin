@@ -24,6 +24,8 @@ ADD  http://repo1.maven.org/maven2/org/apache/shiro/tools/shiro-tools-hasher/1.3
 ADD https://storage.googleapis.com/kubernetes-release/release/v1.7.4/bin/linux/amd64/kubectl /usr/local/bin
 RUN chmod +x /usr/local/bin/kubectl
 
+RUN apk add gettext
+
 WORKDIR /opt/zeppelin
 
 ENTRYPOINT bin/zeppelin.sh
