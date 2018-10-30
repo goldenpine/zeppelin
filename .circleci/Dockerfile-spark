@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM banzaicloud/spark:v2.3.2.97
+FROM banzaicloud/spark:latest
 
 # `Z_VERSION` will be updated by `dev/change_zeppelin_version.sh`
 ENV Z_VERSION="0.9.0-SNAPSHOT"
