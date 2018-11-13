@@ -2,7 +2,7 @@ version: 3
 general:
   branches:
     only:
-      - master-spark-k8s
+      - master-spark-k8s-2.3.2
     ignore:
       - master
 jobs:
@@ -16,10 +16,10 @@ jobs:
 
       - restore_cache:
           keys:
-          - zeppelin-k8s-master-{{ checksum "pom.xml" }}
+          - zeppelin-k8s-master-2.3.2-{{ checksum "pom.xml" }}
           # fallback to using the latest cache if no exact match is found
           # cp .circleci/interpreter.json.template conf/interpreter.json
-          - zeppelin-k8s-master-
+          - zeppelin-k8s-master-2.3.2-
 
       - run:
           name: Build
@@ -36,7 +36,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: zeppelin-k8s-master-{{ checksum "pom.xml" }}
+          key: zeppelin-k8s-master-2.3.2-{{ checksum "pom.xml" }}
 
       - setup_remote_docker:
           reusable: true
@@ -45,9 +45,10 @@ jobs:
           name: Build containers
           command: |
             export ZEPPELIN_VERSION="0.9.0-k8s-1.0.${CIRCLE_BUILD_NUM}"
-            cp .circleci/Dockerfile zeppelin-distribution/target
+            cp .circleci/Dockerfile* zeppelin-distribution/target
             cd zeppelin-distribution/target
             docker build -t "${DOCKER_HUB_PATH}/zeppelin-server:v${ZEPPELIN_VERSION}" -f Dockerfile .
+            docker build -t "${DOCKER_HUB_PATH}/zeppelin-spark:v${ZEPPELIN_VERSION}" -f Dockerfile-spark .
             docker images
       - deploy:
           name: Push docker images
@@ -55,3 +56,4 @@ jobs:
             export ZEPPELIN_VERSION="0.9.0-k8s-1.0.${CIRCLE_BUILD_NUM}"
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push "${DOCKER_HUB_PATH}/zeppelin-server:v${ZEPPELIN_VERSION}"
+            docker push "${DOCKER_HUB_PATH}/zeppelin-spark:v${ZEPPELIN_VERSION}"
