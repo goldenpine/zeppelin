@@ -39,6 +39,7 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.environment.EnvironmentUtils;
+import org.apache.zeppelin.interpreter.launcher.SparkK8sInterpreterLauncher;
 import org.apache.zeppelin.interpreter.thrift.RemoteInterpreterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
   private static final String DRIVER_SERVICE_NAME_SUFFIX = "-ri-svc";
   private static final String KUBERNETES_NAMESPACE = "default";
   private static final String INTERPRETER_PROCESS_ID = "interpreter-processId";
+  private static final String INTERPRETER_ID = "interpreterId";
 
   protected final String interpreterRunner;
   protected final String portRange;
@@ -132,6 +134,13 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
 
   @Override
   public void start(String userName) {
+    // make sure to delete any driver belonging to the same interpretergroupid
+    try {
+      deleteDriver();
+    } catch (KubernetesClientException e) {
+      logger.error(e.getMessage(), e);
+    }
+
     CommandLine cmdLine = CommandLine.parse(interpreterRunner);
     cmdLine.addArgument("-d", false);
     cmdLine.addArgument(interpreterDir, false);
@@ -248,25 +257,34 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
   private void deleteDriver() {
     List<Job> list = getKubernetesClient().extensions().jobs().inNamespace
       (KUBERNETES_NAMESPACE)
-      .withLabel(INTERPRETER_PROCESS_ID, processLabelId).list().getItems();
+      .withLabel(INTERPRETER_ID, SparkK8sInterpreterLauncher.formatId(interpreterGroupId, 64))
+      .list().getItems();
     if (list.size() >= 1) {
       Job driverJob = list.iterator().next();
-      logger.debug("Driver job: {} {} parallelism: {} completions: {}", driverJob.getMetadata()
+      logger.debug("Driver job found: {} {} parallelism: {} completions: {} active: {} succeeded:" +
+          " {} " +
+          "failed: {}",
+        driverJob
+          .getMetadata()
           .getName(),
+        driverJob.getSpec().getCompletions(),
         driverJob.getSpec().getParallelism(),
-        driverJob.getSpec().getCompletions());
+        driverJob.getStatus().getActive(),
+        driverJob.getStatus().getSucceeded(),
+        driverJob.getStatus().getFailed());
 
-      if (driverJob.getSpec().getCompletions() == 0) {
+      if (driverJob != null) {
+        logger.debug("Delete Driver job {}", driverJob.getMetadata().getName());
         getKubernetesClient().extensions().jobs().delete(driverJob);
       }
     } else {
       logger.debug("Job not found will try to delete pod directly!");
       List<Pod> podList = getKubernetesClient().pods().inNamespace(KUBERNETES_NAMESPACE)
-        .withLabel(INTERPRETER_PROCESS_ID, processLabelId).list().getItems();
+        .withLabel(INTERPRETER_ID, SparkK8sInterpreterLauncher.formatId(interpreterGroupId, 64)).list().getItems();
       if (podList.size() >= 1) {
         Pod driverPod = podList.iterator().next();
         String podName = driverPod.getMetadata().getName();
-        logger.debug("Delete Driver pod {} if Running, with status: ", podName,
+        logger.debug("Delete Driver pod {} with status: ", podName,
           driverPod.getStatus().getPhase());
         getKubernetesClient().pods().delete(driverPod);
       } else {

@@ -40,6 +40,8 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
   private static final Logger LOGGER = LoggerFactory.getLogger(SparkInterpreterLauncher.class);
   public static final String SPARK_KUBERNETES_DRIVER_LABEL_INTERPRETER_PROCESS_ID =
     "spark.kubernetes.driver.label.interpreter-processId";
+  public static final String SPARK_KUBERNETES_DRIVER_LABEL_INTERPRETER_ID =
+    "spark.kubernetes.driver.label.interpreterId";
   public static final String SPARK_APP_NAME = "spark.app.name";
   public static final String SPARK_METRICS_NAMESPACE = "spark.metrics.namespace";
 
@@ -76,6 +78,7 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
       // explicitly specified
       String driverPodNamePrefix = properties.get(SPARK_APP_NAME) + "-" + groupId;
       properties.put(SPARK_APP_NAME, driverPodNamePrefix);
+      properties.put(SPARK_KUBERNETES_DRIVER_LABEL_INTERPRETER_ID, groupId);
       // set same id for metrics namespace to be able to identify metrics of a specific app
       properties.put(SPARK_METRICS_NAMESPACE, driverPodNamePrefix);
 
@@ -92,7 +95,6 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
         ".extraJavaOptions=\"-Dlog4j" +
         ".configuration=/opt/zeppelin/conf/log4j_k8_cluster.properties\"");
       env.put("ZEPPELIN_SPARK_CONF", sparkConfBuilder.toString());
-
 
       return new SparkK8sRemoteInterpreterManagedProcess(
               zConf.getZeppelinServerHostname(),
@@ -155,7 +157,7 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
    * @param maxLength
    * @return
    */
-  private String formatId(String str, int maxLength) {
+  public static String formatId(String str, int maxLength) {
     str = str.replaceAll("[^a-zA-Z0-9]", "-").toLowerCase();
     if (str.length() > maxLength) {
       str = str.substring(0, maxLength - 1);
