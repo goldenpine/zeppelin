@@ -68,7 +68,6 @@ zeppelin-web/yarn.lock
 /zan-repo/
 /drivers/
 /warehouse/
-/notebook/
 /local-repo/
 
 **/sessions/
