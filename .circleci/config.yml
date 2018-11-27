@@ -3,6 +3,7 @@ general:
   branches:
     only:
       - master-spark-k8s-2.3.2
+      - master-spark-k8s-2.4.0
     ignore:
       - master
 jobs:
@@ -16,16 +17,16 @@ jobs:
 
       - restore_cache:
           keys:
-          - zeppelin-k8s-master-2.3.2-{{ checksum "pom.xml" }}
+          - zeppelin-k8s-master-2.4.0-{{ checksum "pom.xml" }}
           # fallback to using the latest cache if no exact match is found
           # cp .circleci/interpreter.json.template conf/interpreter.json
-          - zeppelin-k8s-master-2.3.2-
+          - zeppelin-k8s-master-2.4.0-
 
       - run:
           name: Build
           command: |
             ./dev/change_scala_version.sh 2.11
-            mvn clean install -DskipTests -Pspark-2.2 -Pscala-2.11 -Drat.skip=true
+            mvn clean install -DskipTests -Pspark-2.4 -Pscala-2.11 -Drat.skip=true
 
       - run:
           name: Create distribution
@@ -36,7 +37,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: zeppelin-k8s-master-2.3.2-{{ checksum "pom.xml" }}
+          key: zeppelin-k8s-master-2.4.0-{{ checksum "pom.xml" }}
 
       - setup_remote_docker:
           reusable: true
