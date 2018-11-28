@@ -218,10 +218,23 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
       .get();
   }
 
+  private String getServiceName(Pod driverPod) {
+    String serviceName = driverPod.getMetadata().getName();
+    int idx = serviceName.indexOf("-driver");
+    if (idx == -1) {
+      idx = serviceName.length();
+      if (idx > 33) {
+        idx = 33;
+      }
+    }
+    serviceName = serviceName.substring(0, idx);
+    return serviceName + DRIVER_SERVICE_NAME_SUFFIX;
+  }
+
   private Service getOrCreateEndpointService(Pod driverPod)
       throws KubernetesClientException {
-    String serviceName = driverPod.getMetadata().getAnnotations().get("spark-app-name") +
-      DRIVER_SERVICE_NAME_SUFFIX;
+
+    String serviceName = getServiceName(driverPod);
     driverService = getEndpointService(serviceName);
 
     // create endpoint service for RemoteInterpreterServer
