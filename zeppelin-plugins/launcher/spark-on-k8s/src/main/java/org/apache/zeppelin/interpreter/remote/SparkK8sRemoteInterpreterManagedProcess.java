@@ -64,7 +64,6 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
 
   private static final String SPARK_APP_SELECTOR = "spark-app-selector";
   private static final String DRIVER_SERVICE_NAME_SUFFIX = "-ri-svc";
-  private static final String KUBERNETES_NAMESPACE = "default";
   private static final String INTERPRETER_PROCESS_ID = "interpreter-processId";
   private static final String INTERPRETER_ID = "interpreterId";
 
@@ -86,11 +85,12 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
   private final String interpreterSettingName;
   private final String interpreterGroupId;
   private final boolean isUserImpersonated;
+  private final String namespace;
 
   /**
    * Default url for Kubernetes inside of an Kubernetes cluster.
    */
-  private static String K8_URL = "https://kubernetes:443";
+  private static String K8_URL = "https://kubernetes.default.svc.cluster.local:443";
 
   private KubernetesClient kubernetesClient;
 
@@ -109,7 +109,8 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
                                                  String processLabelId,
                                                  String interpreterSettingName,
                                                  String interpreterGroupId,
-                                                 boolean isUserImpersonated) {
+                                                 boolean isUserImpersonated,
+                                                 String namespace) {
 
     super(connectTimeout);
     this.zeppelinServerRPCHost = zeppelinServerRPCHost;
@@ -124,6 +125,8 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
     this.interpreterSettingName = interpreterSettingName;
     this.interpreterGroupId = interpreterGroupId;
     this.isUserImpersonated = isUserImpersonated;
+    this.namespace = namespace;
+    logger.info("k8s namespace: " + namespace);
   }
 
 
@@ -214,7 +217,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
   private Service getEndpointService(String serviceName)
       throws KubernetesClientException {
     logger.debug("Check if RemoteInterpreterServer service {} exists", serviceName);
-    return getKubernetesClient().services().inNamespace(KUBERNETES_NAMESPACE).withName(serviceName)
+    return getKubernetesClient().services().inNamespace(namespace).withName(serviceName)
       .get();
   }
 
@@ -250,7 +253,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
               .withType("ClusterIP")
               //.withClusterIP("None")
               .endSpec().build();
-      driverService = getKubernetesClient().services().inNamespace(KUBERNETES_NAMESPACE)
+      driverService = getKubernetesClient().services().inNamespace(namespace)
         .create(driverService);
     }
 
@@ -260,7 +263,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
   private void deleteEndpointService()
       throws KubernetesClientException {
     if (driverService != null) {
-      boolean result = getKubernetesClient().services().inNamespace(KUBERNETES_NAMESPACE)
+      boolean result = getKubernetesClient().services().inNamespace(namespace)
         .delete(driverService);
       logger.info("Delete RemoteInterpreterServer service {} : {}",
         driverService.getMetadata().getName(), result);
@@ -269,7 +272,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
 
   private void deleteDriver() {
     List<Job> list = getKubernetesClient().extensions().jobs().inNamespace
-      (KUBERNETES_NAMESPACE)
+      (namespace)
       .withLabel(INTERPRETER_ID, SparkK8sInterpreterLauncher.formatId(interpreterGroupId, 64))
       .list().getItems();
     if (list.size() >= 1) {
@@ -292,7 +295,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
       }
     } else {
       logger.debug("Job not found will try to delete pod directly!");
-      List<Pod> podList = getKubernetesClient().pods().inNamespace(KUBERNETES_NAMESPACE)
+      List<Pod> podList = getKubernetesClient().pods().inNamespace(namespace)
         .withLabel(INTERPRETER_ID, SparkK8sInterpreterLauncher.formatId(interpreterGroupId, 64)).list().getItems();
       if (podList.size() >= 1) {
         Pod driverPod = podList.iterator().next();
@@ -383,7 +386,7 @@ public class SparkK8sRemoteInterpreterManagedProcess extends RemoteInterpreterPr
   @Override
   public void processStarted(int port, String host) {
     logger.info("RemoteInterpreterServer listening on {} {}", host, port);
-    List<Pod> podList = getKubernetesClient().pods().inNamespace(KUBERNETES_NAMESPACE).withLabel
+    List<Pod> podList = getKubernetesClient().pods().inNamespace(namespace).withLabel
       (INTERPRETER_PROCESS_ID, processLabelId).list().getItems();
     if (podList.size() == 0) {
       logger.warn("No Driver Pod found with label {}={}", INTERPRETER_PROCESS_ID, processLabelId);

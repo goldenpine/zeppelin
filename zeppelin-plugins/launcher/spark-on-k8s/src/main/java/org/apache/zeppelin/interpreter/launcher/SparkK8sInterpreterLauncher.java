@@ -43,6 +43,7 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
   public static final String SPARK_KUBERNETES_DRIVER_LABEL_INTERPRETER_ID =
     "spark.kubernetes.driver.label.interpreterId";
   public static final String SPARK_APP_NAME = "spark.app.name";
+  public static final String SPARK_K8S_NAMESPACE = "spark.kubernetes.namespace";
   public static final String SPARK_METRICS_NAMESPACE = "spark.metrics.namespace";
 
   public SparkK8sInterpreterLauncher(ZeppelinConfiguration zConf, RecoveryStorage recoveryStorage) {
@@ -103,7 +104,8 @@ public class SparkK8sInterpreterLauncher extends SparkInterpreterLauncher {
               zConf.getInterpreterPortRange(),
               zConf.getInterpreterDir() + "/" + groupName, localRepoPath,
               env, connectTimeout, processIdLabel, context.getInterpreterSettingName(),
-              context.getInterpreterGroupId(), option.isUserImpersonate());
+              context.getInterpreterGroupId(), option.isUserImpersonate(),
+              properties.getProperty(SPARK_K8S_NAMESPACE));
     }
   }
 
